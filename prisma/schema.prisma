@@ -1,0 +1,82 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Posts {
+  id Int @id @default(autoincrement())
+  content String
+  likes Int
+  dislikes Int
+  author Users @relation(fields: [authorId], references: [id])
+  authorId Int
+  community Communities @relation(fields: [communityId], references: [id])
+  communityId Int
+  comments Comments[]
+} 
+
+model Comments {
+  id Int @id @default(autoincrement())
+  content String
+  likes Int
+  dislikes Int
+  post Posts @relation(fields: [postId], references: [id])
+  postId Int
+  author Users @relation(fields: [authorId], references: [id])
+  authorId Int
+}
+
+model Communities {
+  id Int @id @default(autoincrement())
+  name String
+  followers Int
+  posts Posts[]
+  followedCommunities FollowedCommunities[]
+}
+
+model Messages {
+  id Int @id @default(autoincrement())
+  message String
+  timestamp DateTime
+  sender Users @relation(fields: [senderId], references: [id])
+  senderId Int
+  conversation Conversations @relation(fields: [conversationId], references: [id])
+  conversationId Int
+}
+
+model Conversations {
+  id Int @id @default(autoincrement())
+  timestamp DateTime
+  participants Users[]
+  messages Messages[]
+}
+
+model Users {
+  id Int @id @default(autoincrement())
+  username String
+  passwordHash String
+  moderator Boolean
+  email String
+  following String[]
+  birthdate DateTime
+  posts Posts[]
+  comments Comments[]
+  followedCommunities FollowedCommunities[]
+  conversations Conversations[]
+  messages Messages[]
+}
+
+model FollowedCommunities {
+  user Users @relation(fields: [userId], references: [id])
+  userId Int
+  community Communities @relation(fields: [communityId], references: [id])
+  communityId Int
+  followedAt DateTime @default(now())
+
+  @@id([userId, communityId])
+}
