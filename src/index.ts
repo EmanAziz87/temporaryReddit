@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import postRoutes from "./routes/postRoutes/posts.route.js";
+import userRoutes from "./routes/userRoutes/users.route.js";
 import session from "express-session";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaSessionStore } from "@quixo3/prisma-session-store";
@@ -46,6 +47,7 @@ app.use(
 );
 
 app.use("/posts", postRoutes);
+app.use("/users", userRoutes);
 
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
