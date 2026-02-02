@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
-import { AppError } from "../utils/appErrors";
+import { AppError, ConflictError } from "../lib/appErrors";
 import { ZodError } from "zod";
+import { Prisma } from "../../generated/prisma/client";
 
 export const globalErrorHandler = (
   err: any,
@@ -8,6 +9,12 @@ export const globalErrorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === "P2002") {
+      err = new ConflictError();
+    }
+  }
+
   if (err instanceof ZodError) {
     return res.status(400).json({
       status: "FAILED",
