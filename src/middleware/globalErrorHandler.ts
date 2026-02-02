@@ -10,6 +10,7 @@ export const globalErrorHandler = (
   next: NextFunction,
 ) => {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    console.log("Prisma Error Code: -- ", err.code);
     if (err.code === "P2002") {
       err = new ConflictError();
     }

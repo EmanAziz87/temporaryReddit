@@ -1,6 +1,6 @@
 export class AppError extends Error {
   constructor(
-    public message: string,
+    public override message: string,
     public statusCode: number,
   ) {
     super(message);
@@ -14,7 +14,7 @@ export class InvalidRequestError extends AppError {
   }
 }
 
-export class AuthenticationRequiredError extends AppError {
+export class UnauthorizedError extends AppError {
   constructor(message = "Login Required, Acess Denied") {
     super(message, 401);
   }
