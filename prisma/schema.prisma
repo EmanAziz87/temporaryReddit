@@ -60,9 +60,8 @@ model Users {
   id Int @id @default(autoincrement())
   username String
   passwordHash String
-  moderator Boolean
+  moderator Boolean @default(false)
   email String
-  following String[]
   birthdate DateTime
   posts Posts[]
   comments Comments[]
