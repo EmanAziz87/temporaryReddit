@@ -60,7 +60,7 @@ model Users {
   username            String  @unique
   passwordHash        String
   moderator           Boolean               @default(false)
-  email               String
+  email               String @unique
   birthdate           DateTime
   comments            Comments[]
   followedCommunities FollowedCommunities[]

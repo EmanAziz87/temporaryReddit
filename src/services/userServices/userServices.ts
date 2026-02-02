@@ -4,14 +4,22 @@ import type {
 } from "../../routes/userRoutes/userSchemas";
 import prisma from "../../lib/prisma";
 import { compareHash, hashing } from "../../util/hashing";
-import { UnauthorizedError } from "../../lib/appErrors";
+import { ConflictError, UnauthorizedError } from "../../lib/appErrors";
 import type { Users } from "../../../generated/prisma/client";
 
 const registerService = async (
   registerInfo: UserRegisterInput,
 ): Promise<Users> => {
   const passwordHash = await hashing(registerInfo.password);
+  const foundUser = prisma.users.findFirst({
+    where: {
+      OR: [{ username: registerInfo.username, email: registerInfo.email }],
+    },
+  });
 
+  if (!foundUser) {
+    throw new ConflictError("That Username or Email is already taken");
+  }
   return prisma.users.create({
     data: {
       email: registerInfo.email,
