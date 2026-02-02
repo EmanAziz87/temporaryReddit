@@ -1,12 +1,11 @@
 import express from "express";
 import { UserRegisterSchema, UserLoginSchema } from "./userSchemas";
-import bcrypt from "bcrypt";
 import prisma from "../../lib/prisma";
 import type { UserLoginInput, UserRegisterInput } from "./userSchemas";
 import { setSession } from "../../lib/setSession";
 import { UnauthorizedError } from "../../lib/appErrors";
 import { SESSION_COOKIE_NAME } from "../../util/sessionName";
-import userServices from "../../services/userServices";
+import userServices from "../../services/userServices/userServices";
 
 const userRoute = express.Router();
 
@@ -27,20 +26,8 @@ userRoute.post("/register", async (req, res, next) => {
 userRoute.post("/login", async (req, res, next) => {
   try {
     const validatedData: UserLoginInput = UserLoginSchema.parse(req.body);
-
-    const user = await prisma.users.findUnique({
-      where: { username: validatedData.username },
-    });
-
-    if (
-      !user ||
-      !(await bcrypt.compare(validatedData.password, user.passwordHash))
-    ) {
-      throw new UnauthorizedError("Invalid username or password");
-    }
-
+    const user = await userServices.loginService(validatedData);
     await setSession(req, user.id);
-
     res
       .status(200)
       .json({ status: "SUCCESS", message: "Successfully Logged In" });
