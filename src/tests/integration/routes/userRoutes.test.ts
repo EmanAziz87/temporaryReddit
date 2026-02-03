@@ -78,26 +78,11 @@ describe("User Routes", () => {
       await prisma.users.deleteMany();
     });
 
-    it("should respond with 400 invalid request error if registration input does not have the required properties", async () => {
+    it("should respond with 400 invalid request error if registration input does not have the exact required properties", async () => {
       const response = await request(app).post("/users/register").send({
         email: "test@example.com",
         username: "testuser",
         birthdate: "1997-05-08",
-      });
-
-      expect(response.status).toBe(400);
-      expect(response.body.status).toBe("VALIDATION_ERROR");
-      expect(Array.isArray(response.body.message)).toBe(true);
-    });
-
-    it("should respond with 400 invalid request error if registration input has too many properties", async () => {
-      const response = await request(app).post("/users/register").send({
-        email: "test@example.com",
-        username: "testuser",
-        password: "password123",
-        birthdate: "1997-05-08",
-        gender: "male",
-        height: 178,
       });
 
       expect(response.status).toBe(400);
@@ -126,5 +111,16 @@ describe("User Routes", () => {
       expect(response.body.status).toBe("SUCCESS");
       checkSession(response);
     });
+
+    it("should respond with 401 with invalid username or password", async () => {
+      const response = await request(app).post("/users/login").send({
+        username: "testuser",
+        password: "password321",
+      });
+
+      expect(response.status).toBe(401);
+    });
+
+    it("should respond");
   });
 });

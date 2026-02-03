@@ -46,8 +46,8 @@ app.use(
   }),
 );
 
-app.use("/posts", postRoutes);
 app.use("/users", userRoutes);
+app.use("/posts", postRoutes);
 
 app.use(globalErrorHandler);
 
