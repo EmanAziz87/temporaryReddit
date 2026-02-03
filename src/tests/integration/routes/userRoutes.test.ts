@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import app from "../../../index";
 import prisma from "../../../lib/prisma";
-import { afterEach, beforeEach } from "node:test";
+import { checkSession } from "../../util/sessionHelper";
 
 describe("User Routes", () => {
   beforeAll(async () => {
@@ -10,6 +10,7 @@ describe("User Routes", () => {
   });
 
   afterAll(async () => {
+    await prisma.users.deleteMany();
     await prisma.$disconnect();
   });
 
@@ -25,61 +26,105 @@ describe("User Routes", () => {
       expect(response.status).toBe(201);
       expect(response.body.status).toBe("SUCCESS");
       expect(response.body.message).toBe("Registered and Logged in");
+      checkSession(response);
     });
 
-    describe("Duplicate username or email checks", () => {
-      beforeEach(async () => {
-        await request(app).post("/users/register").send({
-          email: "test@example.com",
+    it("should respond with a 409 if username already exists", async () => {
+      await request(app).post("/users/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+        birthdate: "1999-01-06",
+      });
+
+      const secondRegistrationResponse = await request(app)
+        .post("/users/register")
+        .send({
+          email: "test@example2.com",
           username: "testuser",
-          password: "password123",
-          birthdate: "1999-01-06",
+          password: "password12345",
+          birthdate: "1997-05-08",
         });
+
+      expect(secondRegistrationResponse.status).toBe(409);
+      expect(secondRegistrationResponse.body.message).toBe(
+        "Duplicate Already Exists",
+      );
+
+      await prisma.users.deleteMany();
+    });
+
+    it("should respond with a 409 if email already exists", async () => {
+      await request(app).post("/users/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+        birthdate: "1999-01-06",
       });
 
-      afterEach(async () => {
-        await prisma.users.deleteMany();
+      const secondRegistrationResponse = await request(app)
+        .post("/users/register")
+        .send({
+          email: "test@example.com",
+          username: "testuser2",
+          password: "password12345",
+          birthdate: "1997-05-08",
+        });
+
+      expect(secondRegistrationResponse.status).toBe(409);
+      expect(secondRegistrationResponse.body.message).toBe(
+        "Duplicate Already Exists",
+      );
+      await prisma.users.deleteMany();
+    });
+
+    it("should respond with 400 invalid request error if registration input does not have the required properties", async () => {
+      const response = await request(app).post("/users/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        birthdate: "1997-05-08",
       });
 
-      it("should respond with a 409 if username already exists", async () => {
-        const secondRegistrationResponse = await request(app)
-          .post("/users/register")
-          .send({
-            email: "test@example2.com",
-            username: "testuser",
-            password: "password12345",
-            birthdate: "1997-05-08",
-          });
+      expect(response.status).toBe(400);
+      expect(response.body.status).toBe("VALIDATION_ERROR");
+      expect(Array.isArray(response.body.message)).toBe(true);
+    });
 
-        expect(secondRegistrationResponse.status).toBe(409);
-        expect(secondRegistrationResponse.body.message).toBe(
-          "Duplicate Already Exists",
-        );
+    it("should respond with 400 invalid request error if registration input has too many properties", async () => {
+      const response = await request(app).post("/users/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+        birthdate: "1997-05-08",
+        gender: "male",
+        height: 178,
       });
 
-      it("should respond with a 409 if email already exists", async () => {
-        const secondRegistrationResponse = await request(app)
-          .post("/users/register")
-          .send({
-            email: "test@example.com",
-            username: "testuser2",
-            password: "password12345",
-            birthdate: "1997-05-08",
-          });
+      expect(response.status).toBe(400);
+      expect(response.body.status).toBe("VALIDATION_ERROR");
+      expect(Array.isArray(response.body.message)).toBe(true);
+    });
+  });
 
-        expect(secondRegistrationResponse.status).toBe(409);
-        expect(secondRegistrationResponse.body.message).toBe(
-          "Duplicate Already Exists",
-        );
+  describe("POST /users/login", () => {
+    beforeAll(async () => {
+      await request(app).post("/users/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+        birthdate: "1997-05-08",
       });
     });
 
-    it(
-      "should respond with 400 invalid request error if registration input does not have the required properties",
-    );
+    it("should successfully login", async () => {
+      const response = await request(app).post("/users/login").send({
+        username: "testuser",
+        password: "password123",
+      });
 
-    it(
-      "should respond with 400 invalid request error if registration input has too many properties",
-    );
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe("SUCCESS");
+      checkSession(response);
+    });
   });
 });

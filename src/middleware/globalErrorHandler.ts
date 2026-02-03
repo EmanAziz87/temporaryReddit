@@ -18,7 +18,7 @@ export const globalErrorHandler = (
 
   if (err instanceof ZodError) {
     return res.status(400).json({
-      status: "FAILED",
+      status: "VALIDATION_ERROR",
       message: err.issues,
     });
   }
