@@ -130,8 +130,6 @@ describe("User Routes", () => {
   });
 
   describe("POST /users/logout", () => {
-    beforeAll(async () => {});
-
     afterAll(async () => {
       await prisma.users.deleteMany();
     });

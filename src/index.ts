@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import postRoutes from "./routes/postRoutes/postRoutes.js";
 import userRoutes from "./routes/userRoutes/userRoutes.js";
 import session from "express-session";
 import { PrismaSessionStore } from "@quixo3/prisma-session-store";
@@ -8,6 +7,7 @@ import prisma from "./lib/prisma.js";
 import dotenv from "dotenv";
 import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
 import { SESSION_COOKIE_NAME } from "./util/sessionName.js";
+import communityRouter from "./routes/communityRoutes/communityRoutes.js";
 
 dotenv.config();
 
@@ -47,7 +47,7 @@ app.use(
 );
 
 app.use("/users", userRoutes);
-app.use("/posts", postRoutes);
+app.use("/communities", communityRouter);
 
 app.use(globalErrorHandler);
 

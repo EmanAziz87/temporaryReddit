@@ -27,7 +27,7 @@ export class ForbiddenContentError extends AppError {
 }
 
 export class NotFoundError extends AppError {
-  constructor(message = "The Url Doesn't Point To Anything") {
+  constructor(message = "Resource not found") {
     super(message, 404);
   }
 }
