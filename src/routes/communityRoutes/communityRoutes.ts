@@ -30,14 +30,14 @@ communityRouter.post("/create", isAuthenticated, async (req, res, next) => {
   }
 });
 
-communityRouter.put("/edit{/:id}", isAuthenticated, async (req, res, next) => {
+communityRouter.put("/edit/:id", isAuthenticated, async (req, res, next) => {
   try {
     const validatedParams: CommunityIdParams = CommunityId.parse(req.params);
     const validatedData: EditCommunityInput = EditCommunity.parse(req.body);
 
     const editedCommunity = await communityServices.editCommunityService(
       validatedData,
-      validatedParams,
+      validatedParams.id,
       req.session.userId!,
     );
 
@@ -66,7 +66,7 @@ communityRouter.get("/", async (_req, res, next) => {
   }
 });
 
-communityRouter.get("{/:id}", async (req, res, next) => {
+communityRouter.get("/:id", async (req, res, next) => {
   try {
     const validatedParams: CommunityIdParams = CommunityId.parse(req.params);
 
@@ -84,11 +84,43 @@ communityRouter.get("{/:id}", async (req, res, next) => {
   }
 });
 
-communityRouter.put("/follow/{/:id}", async (req, res, next) => {
+communityRouter.put("/follow/:id", isAuthenticated, async (req, res, next) => {
   try {
+    const validatedParams: CommunityIdParams = CommunityId.parse(req.params);
+    const followedCommunity = await communityServices.followCommunityService(
+      validatedParams.id,
+      req.session.userId!,
+    );
+    res.status(201).json({
+      status: "SUCCESS",
+      message: `Successfully followed ${followedCommunity.community.name}`,
+      followedCommunity: followedCommunity.community,
+    });
   } catch (err) {
     next(err);
   }
 });
+
+communityRouter.put(
+  "/unfollow/:id",
+  isAuthenticated,
+  async (req, res, next) => {
+    try {
+      const validatedParams: CommunityIdParams = CommunityId.parse(req.params);
+      const unfollowedCommunity =
+        await communityServices.unfollowCommunityService(
+          validatedParams.id,
+          req.session.userId!,
+        );
+      res.status(201).json({
+        status: "SUCCESS",
+        message: `Successfully unfollowed ${unfollowedCommunity.name}`,
+        unfollowedCommunity: unfollowedCommunity,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 export default communityRouter;
