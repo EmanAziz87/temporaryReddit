@@ -43,9 +43,49 @@ communityRouter.put("/edit{/:id}", isAuthenticated, async (req, res, next) => {
 
     res.status(201).json({
       status: "SUCCESS",
-      message: `Successfully edited com`,
+      message: `Successfully edited ${editedCommunity.name}`,
       editedCommunity,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+communityRouter.get("/", async (_req, res, next) => {
+  try {
+    const fetchedCommunities =
+      await communityServices.getAllCommunitiesService();
+    res.status(200).json({
+      status: 200,
+      message: `Successfully grabbed all communitiese`,
+      allCommunities: fetchedCommunities,
+    });
+  } catch (err) {
+    console.error("DEBUG ERROR:", err);
+    next(err);
+  }
+});
+
+communityRouter.get("{/:id}", async (req, res, next) => {
+  try {
+    const validatedParams: CommunityIdParams = CommunityId.parse(req.params);
+
+    const fetchedCommunity = await communityServices.getCommunityService(
+      validatedParams.id,
+    );
+
+    res.status(200).json({
+      status: "SUCCESS",
+      message: `Sucessfully grabbed ${fetchedCommunity.name}`,
+      fetchedCommunity,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+communityRouter.put("/follow/{/:id}", async (req, res, next) => {
+  try {
   } catch (err) {
     next(err);
   }

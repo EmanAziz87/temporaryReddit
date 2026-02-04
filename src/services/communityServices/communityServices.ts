@@ -1,9 +1,5 @@
 import type { Communities } from "../../../generated/prisma/client";
-import {
-  ForbiddenContentError,
-  NotFoundError,
-  UnauthorizedError,
-} from "../../lib/appErrors";
+import { ForbiddenContentError, NotFoundError } from "../../lib/appErrors";
 import prisma from "../../lib/prisma";
 import type {
   CommunityIdParams,
@@ -32,7 +28,7 @@ const editCommunityService = async (
   editedCommunityInputData: EditCommunityInput,
   params: CommunityIdParams,
   userId: string,
-) => {
+): Promise<Communities> => {
   const foundCommunity = await prisma.communities.findUnique({
     where: {
       id: Number(params.id),
@@ -60,4 +56,29 @@ const editCommunityService = async (
   });
 };
 
-export default { createCommunityService, editCommunityService };
+const getCommunityService = async (communityId: number) => {
+  const fetchedCommunity = await prisma.communities.findUnique({
+    where: {
+      id: communityId,
+    },
+  });
+
+  if (!fetchedCommunity) {
+    throw new NotFoundError("That community was not found");
+  }
+
+  return fetchedCommunity;
+};
+
+const getAllCommunitiesService = async () => {
+  return prisma.communities.findMany({});
+};
+
+const 
+
+export default {
+  createCommunityService,
+  editCommunityService,
+  getCommunityService,
+  getAllCommunitiesService,
+};
