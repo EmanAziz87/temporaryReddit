@@ -216,7 +216,7 @@ describe("Community Routes", () => {
         public: true,
       });
 
-      const response2 = await agent.put(
+      await agent.put(
         `/communities/follow/${response.body.createdCommunity.id}`,
       );
 

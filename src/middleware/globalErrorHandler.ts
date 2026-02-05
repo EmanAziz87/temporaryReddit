@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { AppError, ConflictError } from "../lib/appErrors";
 import { ZodError } from "zod";
 import { Prisma } from "../../generated/prisma/client";
+import multer from "multer";
 
 export const globalErrorHandler = (
   err: any,
@@ -20,6 +21,13 @@ export const globalErrorHandler = (
     return res.status(400).json({
       status: "VALIDATION_ERROR",
       message: err.issues,
+    });
+  }
+
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      status: "IMAGE UPLOAD ERROR",
+      message: err.message,
     });
   }
 

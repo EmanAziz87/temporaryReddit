@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
 import { SESSION_COOKIE_NAME } from "./util/sessionName.js";
 import communityRouter from "./routes/communityRoutes/communityRoutes.js";
+import postRoutes from "./routes/postRoutes/postRoutes.js";
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ app.use(
 
 app.use("/users", userRoutes);
 app.use("/communities", communityRouter);
+app.use("/posts", postRoutes);
 
 app.use(globalErrorHandler);
 
