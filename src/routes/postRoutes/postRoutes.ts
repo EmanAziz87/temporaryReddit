@@ -9,9 +9,7 @@ import {
   type PostParams,
 } from "./postSchema";
 import postServices from "../../services/postServices/postServices";
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
-
-import s3Client from "../../util/s3client";
+import { cleanUpOrphanedImages } from "../../lib/s3cleanup";
 const postRouter = express.Router();
 
 postRouter.post(
@@ -38,19 +36,7 @@ postRouter.post(
         createdPost,
       });
     } catch (err) {
-      if (uploadedImageKeys.length > 0) {
-        await Promise.all(
-          uploadedImageKeys.map((key) =>
-            s3Client.send(
-              new DeleteObjectCommand({
-                Bucket: process.env["AWS_BUCKET_NAME"],
-                Key: key,
-              }),
-            ),
-          ),
-        );
-        console.log(`Cleaned up ${uploadedImageKeys.length} orphaned images`);
-      }
+      await cleanUpOrphanedImages(uploadedImageKeys);
       next(err);
     }
   },

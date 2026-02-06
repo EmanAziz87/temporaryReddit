@@ -35,6 +35,7 @@ export const postFoundOrThrow = async (
 
       author: {
         select: {
+          id: true,
           username: true,
           admin: true,
         },
