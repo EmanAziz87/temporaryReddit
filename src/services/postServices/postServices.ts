@@ -1,12 +1,41 @@
+import prisma from "../../lib/prisma";
+import {
+  communityFoundOrThrow,
+  postFoundOrThrow,
+} from "../../lib/prismaHelpers";
 import type { CreatePostInput } from "../../routes/postRoutes/postSchema";
+import type { PostsWithRelations } from "./typesPostServices";
 
-const createPostService = (
+const createPostService = async (
   postInputData: CreatePostInput,
   communityId: number,
   userId: string,
-  imageLocationUrls: string[],
+  imageLocationUrls: string[] | null,
 ) => {
   const userIdNumber = Number(userId);
+
+  communityFoundOrThrow(communityId);
+
+  return prisma.posts.create({
+    data: {
+      title: postInputData.title,
+      content: postInputData.content,
+      mediaUrl: imageLocationUrls ? imageLocationUrls.map((url) => url) : [],
+      authorId: userIdNumber,
+      communityId: communityId,
+    },
+    include: {
+      community: true,
+      comments: true,
+    },
+  });
 };
 
-export default { createPostService };
+const getPostService = async (
+  communityId: number,
+  postId: number,
+): Promise<PostsWithRelations> => {
+  return await postFoundOrThrow(communityId, postId);
+};
+
+export default { createPostService, getPostService };

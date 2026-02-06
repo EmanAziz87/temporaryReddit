@@ -56,4 +56,27 @@ postRouter.post(
   },
 );
 
-export default postRoutes;
+postRouter.get(
+  "/community/:communityId/post/:postId",
+  async (req, res, next) => {
+    try {
+      const validatedParams: PostParams = PostParamsData.parse(req.params);
+      const fetchedPost = await postServices.getPostService(
+        validatedParams.communityId,
+        validatedParams.postId!,
+      );
+
+      res
+        .status(200)
+        .json({
+          status: "SUCCESS",
+          message: `Successfully grabbed post: ${fetchedPost.title}`,
+          fetchedPost,
+        });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+export default postRouter;

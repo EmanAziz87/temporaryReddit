@@ -1,31 +1,12 @@
 import type { Communities } from "../../../generated/prisma/client";
-import {
-  ConflictError,
-  ForbiddenContentError,
-  NotFoundError,
-} from "../../lib/appErrors";
+import { ConflictError, ForbiddenContentError } from "../../lib/appErrors";
 import prisma from "../../lib/prisma";
+import { communityFoundOrThrow } from "../../lib/prismaHelpers";
 import type {
   CreateCommunityInput,
   EditCommunityInput,
 } from "../../routes/communityRoutes/communitySchema";
-import type { FollowedCommunitiesWithCommunity } from "./types";
-
-const communityFoundOrThrow = async (
-  communityId: number,
-): Promise<Communities> => {
-  const foundCommunity = await prisma.communities.findUnique({
-    where: {
-      id: communityId,
-    },
-  });
-
-  if (!foundCommunity) {
-    throw new NotFoundError("That community was not found");
-  }
-
-  return foundCommunity;
-};
+import type { FollowedCommunitiesWithCommunity } from "./typesCommunityServices";
 
 const createCommunityService = async (
   communityInputData: CreateCommunityInput,
