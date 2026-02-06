@@ -11,7 +11,7 @@ export const globalErrorHandler = (
   _next: NextFunction,
 ) => {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    console.log("Prisma Error Code: -- ", err.code);
+    console.log("Prisma Error Code: -- ", err);
     if (err.code === "P2002") {
       err = new ConflictError();
     }
@@ -21,6 +21,7 @@ export const globalErrorHandler = (
     return res.status(400).json({
       status: "VALIDATION_ERROR",
       message: err.issues,
+      entireErrObj: err,
     });
   }
 

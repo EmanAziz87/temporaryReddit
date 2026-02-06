@@ -3,18 +3,18 @@ import { isAuthenticated } from "../../middleware/isAuthenticated";
 import uploads from "../../middleware/s3storage";
 import {
   CreatePost,
+  PostParamsData,
   type CreatePostInput,
   type MulterS3File,
+  type PostParams,
 } from "./postSchema";
 import postServices from "../../services/postServices/postServices";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
-import {
-  CommunityId,
-  type CommunityIdParams,
-} from "../communityRoutes/communitySchema";
-const postRoutes = express.Router();
 
-postRoutes.post(
+import s3Client from "../../util/s3client";
+const postRouter = express.Router();
+
+postRouter.post(
   "/community/:communityId/create",
   isAuthenticated,
   uploads.array("postImages", 10),
@@ -23,27 +23,30 @@ postRoutes.post(
     const uploadedImageKeys = files.map((file) => file.key);
     try {
       const validatedData: CreatePostInput = CreatePost.parse(req.body);
-      const validatedParams: CommunityIdParams = CommunityId.parse(req.params);
+      const validatedParams: PostParams = PostParamsData.parse(req.params);
 
       const createdPost = await postServices.createPostService(
         validatedData,
-        validatedParams.id,
+        validatedParams.communityId,
         req.session.userId!,
-        files.map((file) => file.location),
+        files ? files.map((file) => file.location) : null,
       );
 
-      res
-        .status(201)
-        .json({ status: "SUCCESS", message: "Post successfully created" });
+      res.status(201).json({
+        status: "SUCCESS",
+        message: "Post successfully created",
+        createdPost,
+      });
     } catch (err) {
       if (uploadedImageKeys.length > 0) {
         await Promise.all(
-          uploadedImageKeys.map(
-            (key) =>
+          uploadedImageKeys.map((key) =>
+            s3Client.send(
               new DeleteObjectCommand({
                 Bucket: process.env["AWS_BUCKET_NAME"],
                 Key: key,
               }),
+            ),
           ),
         );
         console.log(`Cleaned up ${uploadedImageKeys.length} orphaned images`);
