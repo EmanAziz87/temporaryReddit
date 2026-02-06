@@ -14,7 +14,7 @@ userRoute.post("/register", async (req, res, next) => {
     const validatedData: UserRegisterInput = UserRegisterSchema.parse(req.body);
     const user = await userServices.registerService(validatedData);
 
-    await setSession(req, user.id);
+    await setSession(req, user);
     res
       .status(201)
       .json({ status: "SUCCESS", message: "Registered and Logged in" });
@@ -27,7 +27,7 @@ userRoute.post("/login", async (req, res, next) => {
   try {
     const validatedData: UserLoginInput = UserLoginSchema.parse(req.body);
     const user = await userServices.loginService(validatedData);
-    await setSession(req, user.id);
+    await setSession(req, user);
     res
       .status(200)
       .json({ status: "SUCCESS", message: "Successfully Logged In" });

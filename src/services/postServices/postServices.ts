@@ -1,9 +1,11 @@
+import { InvalidRequestError } from "../../lib/appErrors";
 import prisma from "../../lib/prisma";
 import {
   communityFoundOrThrow,
   postFoundOrThrow,
 } from "../../lib/prismaHelpers";
 import type { CreatePostInput } from "../../routes/postRoutes/postSchema";
+import type { UserNoSensitiveInfo } from "../../types/express-session";
 import type { PostsWithRelations } from "./typesPostServices";
 
 const createPostService = async (
@@ -60,4 +62,42 @@ const getAllPostsService = async (
   return [allPosts, foundCommunity.name];
 };
 
-export default { createPostService, getPostService, getAllPostsService };
+// Make custom return type based on nested query for this function
+const getAllPostsFollowedService = async (user: UserNoSensitiveInfo) => {
+  const userIdNumber = Number(user.id);
+
+  if (user.followingCount === 0) {
+    throw new InvalidRequestError(
+      "You are not following any communities to grab posts from",
+    );
+  }
+
+  await prisma.followedCommunities.findMany({
+    where: {
+      userId: userIdNumber,
+    },
+    include: {
+      community: {
+        include: {
+          posts: {
+            include: {
+              author: {
+                select: {
+                  username: true,
+                  admin: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+export default {
+  createPostService,
+  getPostService,
+  getAllPostsService,
+  getAllPostsFollowedService,
+};

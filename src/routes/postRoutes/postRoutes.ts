@@ -79,6 +79,15 @@ postRouter.get("/community/:communityId", async (req, res, next) => {
   }
 });
 
-postRouter;
+postRouter.get(
+  "/community/followed",
+  isAuthenticated,
+  async (req, res, next) => {
+    try {
+      const allFetchedPostsFromFollowed =
+        postServices.getAllPostsFollowedService(req.session.user!);
+    } catch (err) {}
+  },
+);
 
 export default postRouter;
