@@ -102,12 +102,25 @@ postRouter.get("/community/:communityId", async (req, res, next) => {
 
 postRouter.put(
   "/community/:communityId/post/:postId",
+  isAuthenticated,
   async (req, res, next) => {
     try {
       const validatedData: EditPostInput = EditPost.parse(req.body);
       const validatedParams: PostParams = PostParamsData.parse(req.params);
 
-      res.status(201).json({ status: "SUCCESS", message: "" });
+      const editedPost = await postServices.editPostService(
+        validatedData.content,
+        validatedParams.communityId,
+        validatedParams.postId!,
+        req.session.userId!,
+      );
+      res
+        .status(201)
+        .json({
+          status: "SUCCESS",
+          message: "Post successfully updated",
+          editedPost,
+        });
     } catch (err) {
       next(err);
     }

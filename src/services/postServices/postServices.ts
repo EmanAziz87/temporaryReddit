@@ -3,6 +3,7 @@ import prisma from "../../lib/prisma";
 import {
   communityFoundOrThrow,
   postFoundOrThrow,
+  postMadeByUserOrThrow,
 } from "../../lib/prismaHelpers";
 import type { CreatePostInput } from "../../routes/postRoutes/postSchema";
 import type { UserNoSensitiveInfo } from "../../types/express-session";
@@ -99,11 +100,42 @@ const getAllPostsFollowedService = async (
   });
 };
 
-const editPostService = async () => {};
+const editPostService = async (
+  newContent: string,
+  communityId: number,
+  postId: number,
+  userId: string,
+): Promise<PostsWithRelations> => {
+  const userIdNumber = Number(userId);
+
+  postFoundOrThrow(communityId, postId);
+  postMadeByUserOrThrow(postId, userIdNumber);
+
+  return prisma.posts.update({
+    where: {
+      id: postId,
+    },
+    data: {
+      content: newContent,
+    },
+    include: {
+      community: true,
+      comments: true,
+      author: {
+        select: {
+          id: true,
+          username: true,
+          admin: true,
+        },
+      },
+    },
+  });
+};
 
 export default {
   createPostService,
   getPostService,
   getAllPostsService,
   getAllPostsFollowedService,
+  editPostService,
 };

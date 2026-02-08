@@ -1,4 +1,4 @@
-import type { Communities } from "../../generated/prisma/client";
+import type { Communities, Posts } from "../../generated/prisma/client";
 import type { PostsWithRelations } from "../services/postServices/typesPostServices";
 import { NotFoundError } from "./appErrors";
 import prisma from "./prisma";
@@ -52,4 +52,22 @@ export const postFoundOrThrow = async (
   }
 
   return foundPost;
+};
+
+export const postMadeByUserOrThrow = async (
+  postId: number,
+  userId: number,
+): Promise<Posts> => {
+  const foundUserMadePost = await prisma.posts.findFirst({
+    where: {
+      id: postId,
+      authorId: userId,
+    },
+  });
+
+  if (!foundUserMadePost) {
+    throw new NotFoundError("The user did not create that post");
+  }
+
+  return foundUserMadePost;
 };
