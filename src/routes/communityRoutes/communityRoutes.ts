@@ -9,6 +9,7 @@ import {
   type EditCommunityInput,
 } from "./communitySchema";
 import communityServices from "../../services/communityServices/communityServices";
+import { saveSession } from "../../lib/saveSession";
 
 const communityRouter = express.Router();
 
@@ -91,6 +92,10 @@ communityRouter.put("/follow/:id", isAuthenticated, async (req, res, next) => {
       validatedParams.id,
       req.session.userId!,
     );
+
+    req.session.user!.followingCount += 1;
+    await saveSession(req);
+
     res.status(201).json({
       status: "SUCCESS",
       message: `Successfully followed ${followedCommunity.community.name}`,
@@ -112,6 +117,8 @@ communityRouter.put(
           validatedParams.id,
           req.session.userId!,
         );
+      req.session.user!.followingCount -= 1;
+      await saveSession(req);
       res.status(201).json({
         status: "SUCCESS",
         message: `Successfully unfollowed ${unfollowedCommunity.name}`,
