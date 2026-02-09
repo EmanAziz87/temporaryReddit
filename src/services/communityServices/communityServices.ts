@@ -64,7 +64,7 @@ const editCommunityService = async (
 const getCommunityService = async (
   communityId: number,
 ): Promise<Communities> => {
-  const fetchedCommunity = communityFoundOrThrow(communityId);
+  const fetchedCommunity = await communityFoundOrThrow(communityId);
 
   return fetchedCommunity;
 };
@@ -79,7 +79,7 @@ const followCommunityService = async (
 ): Promise<FollowedCommunitiesWithCommunity> => {
   const userIdNumber = Number(userId);
 
-  communityFoundOrThrow(communityId);
+  await communityFoundOrThrow(communityId);
 
   const alreadyFollow = await prisma.followedCommunities.findFirst({
     where: {
@@ -139,7 +139,7 @@ const unfollowCommunityService = async (
   userId: string,
 ): Promise<Communities> => {
   const userIdNumber = Number(userId);
-  communityFoundOrThrow(communityId);
+  await communityFoundOrThrow(communityId);
 
   const alreadyFollow = await prisma.followedCommunities.findFirst({
     where: {

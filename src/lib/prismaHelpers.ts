@@ -1,6 +1,13 @@
-import type { Communities, Posts } from "../../generated/prisma/client";
-import type { PostsWithRelations } from "../services/postServices/typesPostServices";
-import { NotFoundError } from "./appErrors";
+import {
+  ReactionType,
+  type Communities,
+  type Posts,
+} from "../../generated/prisma/client";
+import type {
+  LikedPostsWithRelations,
+  PostsWithRelations,
+} from "../services/postServices/typesPostServices";
+import { ConflictError, NotFoundError } from "./appErrors";
 import prisma from "./prisma";
 
 export const communityFoundOrThrow = async (
@@ -70,4 +77,57 @@ export const postMadeByUserOrThrow = async (
   }
 
   return foundUserMadePost;
+};
+
+export const postLikedAlreadyOrThrow = async (
+  postId: number,
+  userId: number,
+): Promise<void> => {
+  const postLikedAlready = await prisma.postReaction.findUnique({
+    where: {
+      userId_postId: {
+        userId: userId,
+        postId: postId,
+      },
+    },
+  });
+
+  if (postLikedAlready) {
+    throw new ConflictError("The user already liked that post");
+  }
+};
+
+export const postDislikedAlreadyOrThrow = async (
+  postId: number,
+  userId: number,
+): Promise<void> => {
+  const postDislikedAlready = await prisma.postReaction.findFirst({
+    where: {
+      userId: userId,
+      postId: postId,
+      type: ReactionType.DISLIKE,
+    },
+  });
+
+  if (postDislikedAlready) {
+    throw new ConflictError("The user already disliked that post");
+  }
+};
+
+export const postFavoritedAlready = async (
+  postId: number,
+  userId: number,
+): Promise<void> => {
+  const favoritedAlready = await prisma.favoritedPosts.findUnique({
+    where: {
+      userId_postId: {
+        userId: userId,
+        postId: postId,
+      },
+    },
+  });
+
+  if (favoritedAlready) {
+    throw new ConflictError("Post already favorited");
+  }
 };

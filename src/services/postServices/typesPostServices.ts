@@ -20,3 +20,17 @@ export type FollowedCommunitiesWithRelations =
       };
     };
   }>;
+
+export type LikedPostsWithRelations = Prisma.PostReactionGetPayload<{
+  include: {
+    post: true;
+    user: { select: { id: true; username: true; admin: true } };
+  };
+}>;
+
+export type FavoritedPostWithRelations = Prisma.FavoritedPostsGetPayload<{
+  include: {
+    post: true;
+    user: { select: { id: true; username: true; admin: true } };
+  };
+}>;

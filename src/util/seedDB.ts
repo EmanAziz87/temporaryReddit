@@ -3,8 +3,10 @@ import { hashing } from "./hashing";
 import { saltRounds } from "./saltRounds";
 
 const seedDB = async () => {
-  await prisma.session.deleteMany({});
+  await prisma.session.deleteMany();
+  await prisma.postReaction.deleteMany();
   await prisma.followedCommunities.deleteMany();
+  await prisma.favoritedPosts.deleteMany();
   await prisma.comments.deleteMany();
   await prisma.posts.deleteMany();
   await prisma.communities.deleteMany();

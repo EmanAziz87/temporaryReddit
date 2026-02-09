@@ -19,8 +19,8 @@ model Posts {
   comments    Comments[]
   author      Users       @relation(fields: [authorId], references: [id])
   community   Communities @relation(fields: [communityId], references: [id])
-  likedPosts  LikedPosts[]
-  favoritedPosts      FavoritedPosts[]
+  postReaction  PostReaction[]
+  favoritedPosts  FavoritedPosts[]
 }
 
 model Comments {
@@ -80,7 +80,7 @@ model Users {
   messages            Messages[]
   posts               Posts[]
   conversations       Conversations[]       
-  likedPosts          LikedPosts[]
+  postReaction        PostReaction[]
   favoritedPosts      FavoritedPosts[]
 }
 
@@ -94,9 +94,15 @@ model FollowedCommunities {
   @@id([userId, communityId])
 }
 
-model LikedPosts {
+enum ReactionType {
+  LIKE
+  DISLIKE
+}
+
+model PostReaction {
   userId      Int
   postId      Int
+  type        ReactionType
   user        Users     @relation(fields: [userId], references: [id])      
   post        Posts     @relation(fields: [postId], references: [id])
   likedAt     DateTime    @default(now())

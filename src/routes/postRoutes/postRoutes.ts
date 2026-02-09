@@ -130,7 +130,87 @@ postRouter.put(
   isAuthenticated,
   async (req, res, next) => {
     try {
-    } catch (err) {}
+      const validatedParams: PostParams = PostParamsData.parse(req.params);
+      const likedPost = await postServices.likePostService(
+        validatedParams.communityId,
+        validatedParams.postId!,
+        req.session.userId!,
+      );
+      res.status(201).json({
+        status: "SUCCESS",
+        message: `Successfully liked post ${likedPost.post.title}`,
+        likedPost,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+postRouter.put(
+  "/community/:communityId/post/:postId/unlike",
+  isAuthenticated,
+  async (req, res, next) => {
+    try {
+      const validatedParams: PostParams = PostParamsData.parse(req.params);
+
+      const unlikedPost = await postServices.unlikePostService(
+        validatedParams.communityId,
+        validatedParams.postId!,
+        req.session.userId!,
+      );
+
+      res.status(201).json({
+        status: "SUCCESS",
+        message: `Successfully unliked post: ${unlikedPost}`,
+        unlikedPost,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+postRouter.put(
+  "/community/:communityId/post/:postId/favorite",
+  isAuthenticated,
+  async (req, res, next) => {
+    try {
+      const validatedParams: PostParams = PostParamsData.parse(req.params);
+      const favoritedPost = await postServices.favoritePostService(
+        validatedParams.communityId,
+        validatedParams.postId!,
+        req.session.userId!,
+      );
+      res.status(201).json({
+        status: "SUCCESS",
+        message: `Successfully favorited post ${favoritedPost.post.title}`,
+        favoritedPost,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+postRouter.put(
+  "/community/:communityId/post/:postId/unfavorite",
+  isAuthenticated,
+  async (req, res, next) => {
+    try {
+      const validatedParams: PostParams = PostParamsData.parse(req.params);
+      await postServices.unfavoritePostService(
+        validatedParams.communityId,
+        validatedParams.postId!,
+        req.session.userId!,
+      );
+      res.status(204).json({
+        status: "SUCCESS",
+        message: `Successfully unfavorited post`,
+      });
+    } catch (err) {
+      next(err);
+    }
   },
 );
 
