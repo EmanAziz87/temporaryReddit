@@ -214,4 +214,25 @@ postRouter.put(
   },
 );
 
+postRouter.delete(
+  "/community/:communityId/post/:postId",
+  isAuthenticated,
+  async (req, res, next) => {
+    try {
+      const validatedParams: PostParams = PostParamsData.parse(req.params);
+
+      await postServices.deletePostService(
+        validatedParams.communityId,
+        validatedParams.postId!,
+        req.session.userId!,
+      );
+      res
+        .status(204)
+        .json({ status: "SUCCESS", message: "Successfully deleted post" });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 export default postRouter;

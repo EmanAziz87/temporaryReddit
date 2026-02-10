@@ -3,8 +3,10 @@ import { InvalidRequestError, NotFoundError } from "../../lib/appErrors";
 import prisma from "../../lib/prisma";
 import {
   communityFoundOrThrow,
+  isPostOwnerOrThrow,
   postDislikedAlreadyOrThrow,
-  postFavoritedAlready,
+  postFavoritedAlreadyOrThrow,
+  postFoundInCommunityOrThrow,
   postFoundOrThrow,
   postLikedAlreadyOrThrow,
   postMadeByUserOrThrow,
@@ -47,7 +49,10 @@ const getPostService = async (
   communityId: number,
   postId: number,
 ): Promise<PostsWithRelations> => {
-  return await postFoundOrThrow(communityId, postId);
+  const foundCommunity = await communityFoundOrThrow(communityId);
+  const foundPost = await postFoundOrThrow(postId);
+  await postFoundInCommunityOrThrow(foundCommunity, foundPost);
+  return await postFoundOrThrow(postId);
 };
 
 const getAllPostsService = async (
@@ -113,9 +118,10 @@ const editPostService = async (
   userId: string,
 ): Promise<PostsWithRelations> => {
   const userIdNumber = Number(userId);
-
-  await postFoundOrThrow(communityId, postId);
-  await postMadeByUserOrThrow(postId, userIdNumber);
+  const foundCommunity = await communityFoundOrThrow(communityId);
+  const foundPost = await postFoundOrThrow(postId);
+  await postFoundInCommunityOrThrow(foundCommunity, foundPost);
+  await postMadeByUserOrThrow(foundPost.id, userIdNumber);
 
   return prisma.posts.update({
     where: {
@@ -144,7 +150,9 @@ const likePostService = async (
   userId: string,
 ): Promise<LikedPostsWithRelations> => {
   const userIdNumber = Number(userId);
-  await postFoundOrThrow(communityId, postId);
+  const foundCommunity = await communityFoundOrThrow(communityId);
+  const foundPost = await postFoundOrThrow(postId);
+  await postFoundInCommunityOrThrow(foundCommunity, foundPost);
   await postLikedAlreadyOrThrow(postId, userIdNumber);
 
   return prisma.$transaction(async (tx) => {
@@ -197,7 +205,9 @@ const unlikePostService = async (
   userId: string,
 ): Promise<PostsWithRelations> => {
   const userIdNumber = Number(userId);
-  await postFoundOrThrow(communityId, postId);
+  const foundCommunity = await communityFoundOrThrow(communityId);
+  const foundPost = await postFoundOrThrow(postId);
+  await postFoundInCommunityOrThrow(foundCommunity, foundPost);
   await postDislikedAlreadyOrThrow(postId, userIdNumber);
 
   const postReactionExists = await prisma.postReaction.findUnique({
@@ -263,8 +273,10 @@ const favoritePostService = async (
   userId: string,
 ): Promise<FavoritedPostWithRelations> => {
   const userIdNumber = Number(userId);
-  await postFoundOrThrow(communityId, postId);
-  await postFavoritedAlready(postId, userIdNumber);
+  const foundCommunity = await communityFoundOrThrow(communityId);
+  const foundPost = await postFoundOrThrow(postId);
+  await postFoundInCommunityOrThrow(foundCommunity, foundPost);
+  await postFavoritedAlreadyOrThrow(postId, userIdNumber);
 
   return prisma.$transaction(async (tx) => {
     return await tx.favoritedPosts.create({
@@ -292,7 +304,9 @@ const unfavoritePostService = async (
   userId: string,
 ): Promise<void> => {
   const userIdNumber = Number(userId);
-  postFoundOrThrow(communityId, postId);
+  const foundCommunity = await communityFoundOrThrow(communityId);
+  const foundPost = await postFoundOrThrow(postId);
+  await postFoundInCommunityOrThrow(foundCommunity, foundPost);
 
   await prisma.favoritedPosts.delete({
     where: {
@@ -301,6 +315,44 @@ const unfavoritePostService = async (
         userId: userIdNumber,
       },
     },
+  });
+};
+
+const deletePostService = async (
+  communityId: number,
+  postId: number,
+  userId: string,
+): Promise<void> => {
+  const userIdNumber = Number(userId);
+  const foundCommunity = await communityFoundOrThrow(communityId);
+  const foundPost = await postFoundOrThrow(postId);
+  await postFoundInCommunityOrThrow(foundCommunity, foundPost);
+  await isPostOwnerOrThrow(foundPost, userIdNumber);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.favoritedPosts.deleteMany({
+      where: {
+        postId: postId,
+      },
+    });
+
+    await tx.postReaction.deleteMany({
+      where: {
+        postId: postId,
+      },
+    });
+
+    await tx.postReaction.deleteMany({
+      where: {
+        postId: postId,
+      },
+    });
+
+    await tx.posts.delete({
+      where: {
+        id: postId,
+      },
+    });
   });
 };
 
@@ -314,4 +366,5 @@ export default {
   unlikePostService,
   favoritePostService,
   unfavoritePostService,
+  deletePostService,
 };
