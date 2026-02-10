@@ -3,11 +3,8 @@ import {
   type Communities,
   type Posts,
 } from "../../generated/prisma/client";
-import type {
-  LikedPostsWithRelations,
-  PostsWithRelations,
-} from "../services/postServices/typesPostServices";
-import { ConflictError, NotFoundError } from "./appErrors";
+import type { PostsWithRelations } from "../services/postServices/typesPostServices";
+import { ConflictError, NotFoundError, UnauthorizedError } from "./appErrors";
 import prisma from "./prisma";
 
 export const communityFoundOrThrow = async (
@@ -27,11 +24,8 @@ export const communityFoundOrThrow = async (
 };
 
 export const postFoundOrThrow = async (
-  communityId: number,
   postId: number,
 ): Promise<PostsWithRelations> => {
-  const foundCommunity = await communityFoundOrThrow(communityId);
-
   const foundPost = await prisma.posts.findFirst({
     where: {
       id: postId,
@@ -54,11 +48,20 @@ export const postFoundOrThrow = async (
     throw new NotFoundError("That post was not found");
   }
 
-  if (foundCommunity.id !== foundPost?.communityId) {
+  return foundPost;
+};
+
+export const postFoundInCommunityOrThrow = async (
+  community: Communities,
+  post: PostsWithRelations,
+) => {
+  const foundCommunity = await communityFoundOrThrow(community.id);
+
+  if (foundCommunity.id !== post.communityId) {
     throw new NotFoundError("Post not found in this community");
   }
 
-  return foundPost;
+  return post;
 };
 
 export const postMadeByUserOrThrow = async (
@@ -114,7 +117,7 @@ export const postDislikedAlreadyOrThrow = async (
   }
 };
 
-export const postFavoritedAlready = async (
+export const postFavoritedAlreadyOrThrow = async (
   postId: number,
   userId: number,
 ): Promise<void> => {
@@ -129,5 +132,16 @@ export const postFavoritedAlready = async (
 
   if (favoritedAlready) {
     throw new ConflictError("Post already favorited");
+  }
+};
+
+export const isPostOwnerOrThrow = async (
+  post: PostsWithRelations,
+  userId: number,
+): Promise<void> => {
+  if (post.authorId !== userId) {
+    throw new UnauthorizedError(
+      "You can't delete that if you are not the owner",
+    );
   }
 };
