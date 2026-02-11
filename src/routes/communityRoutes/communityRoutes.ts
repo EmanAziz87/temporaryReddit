@@ -56,6 +56,7 @@ communityRouter.get("/", async (_req, res, next) => {
   try {
     const fetchedCommunities =
       await communityServices.getAllCommunitiesService();
+
     res.status(200).json({
       status: 200,
       message: `Successfully grabbed all communitiese`,

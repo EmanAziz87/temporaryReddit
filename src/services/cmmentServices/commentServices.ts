@@ -17,4 +17,20 @@ const createCommentService = async (
   });
 };
 
-export default { createCommentService };
+const replyCommentService = async (
+  postId: number,
+  parentId: number,
+  commentInput: CreateCommentInput,
+  userId: number,
+) => {
+  await prisma.comments.create({
+    data: {
+      postId: postId,
+      parentId: parentId,
+      content: commentInput.content,
+      authorId: userId,
+    },
+  });
+};
+
+export default { createCommentService, replyCommentService };

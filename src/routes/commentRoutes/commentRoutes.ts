@@ -41,11 +41,32 @@ commentRouter.post(
 );
 
 commentRouter.post(
-  "/post/:postId/reply",
+  "/post/:postId/:parentId/reply",
   isAuthenticated,
   async (req, res, next) => {
     try {
-    } catch (err) {}
+      const validatedParams: CommentParams = CommentParamsData.parse(
+        req.params,
+      );
+      const validatedData: CreateCommentInput = CreateCommentData.parse(
+        req.body,
+      );
+
+      const createdReply = commentServices.replyCommentService(
+        validatedParams.postId,
+        validatedParams.parentId!,
+        validatedData,
+        Number(req.session.userId),
+      );
+
+      res.status(201).json({
+        status: "SUCCESS",
+        message: "Successfully created reply comment",
+        createdReply,
+      });
+    } catch (err) {
+      next(err);
+    }
   },
 );
 
