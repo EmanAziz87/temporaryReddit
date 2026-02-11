@@ -226,6 +226,7 @@ postRouter.delete(
         validatedParams.postId!,
         req.session.userId!,
       );
+
       res
         .status(204)
         .json({ status: "SUCCESS", message: "Successfully deleted post" });
