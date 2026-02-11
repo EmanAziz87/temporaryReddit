@@ -1,3 +1,4 @@
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { ReactionType, type Posts } from "../../../generated/prisma/client";
 import { InvalidRequestError, NotFoundError } from "../../lib/appErrors";
 import prisma from "../../lib/prisma";
@@ -13,6 +14,7 @@ import {
 } from "../../lib/prismaHelpers";
 import type { CreatePostInput } from "../../routes/postRoutes/postSchema";
 import type { UserNoSensitiveInfo } from "../../types/express-session";
+import s3Client from "../../util/s3client";
 import type {
   FavoritedPostWithRelations,
   FollowedCommunitiesWithRelations,
@@ -329,7 +331,7 @@ const deletePostService = async (
   await postFoundInCommunityOrThrow(foundCommunity, foundPost);
   await isPostOwnerOrThrow(foundPost, userIdNumber);
 
-  await prisma.$transaction(async (tx) => {
+  const queriesFinished = await prisma.$transaction(async (tx) => {
     await tx.favoritedPosts.deleteMany({
       where: {
         postId: postId,
@@ -342,18 +344,31 @@ const deletePostService = async (
       },
     });
 
-    await tx.postReaction.deleteMany({
+    await tx.comments.deleteMany({
       where: {
         postId: postId,
       },
     });
 
-    await tx.posts.delete({
+    return await tx.posts.delete({
       where: {
         id: postId,
       },
     });
   });
+
+  if (queriesFinished) {
+    await Promise.all(
+      foundPost.mediaUrl.map((key) => {
+        s3Client.send(
+          new DeleteObjectCommand({
+            Bucket: process.env["AWS_BUCKET_NAME"],
+            Key: key,
+          }),
+        );
+      }),
+    );
+  }
 };
 
 export default {

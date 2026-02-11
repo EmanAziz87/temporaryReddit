@@ -26,8 +26,8 @@ model Posts {
 model Comments {
   id       Int    @id @default(autoincrement())
   content  String
-  likes    Int
-  dislikes Int
+  likes    Int @default(0)
+  dislikes Int @default(0)
   parentId Int?
   postId   Int
   authorId Int
