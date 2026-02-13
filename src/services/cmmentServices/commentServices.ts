@@ -23,7 +23,8 @@ const replyCommentService = async (
   commentInput: CreateCommentInput,
   userId: number,
 ) => {
-  await prisma.comments.create({
+  postFoundOrThrow(postId);
+  return prisma.comments.create({
     data: {
       postId: postId,
       parentId: parentId,
@@ -33,4 +34,19 @@ const replyCommentService = async (
   });
 };
 
-export default { createCommentService, replyCommentService };
+// All comments fetched as flat list. Create tree structure on server side
+// for parent/child comment relationship
+const getAllCommentsForPostService = async (postId: number) => {
+  postFoundOrThrow(postId);
+  return prisma.comments.findMany({
+    where: {
+      postId: postId,
+    },
+  });
+};
+
+export default {
+  createCommentService,
+  replyCommentService,
+  getAllCommentsForPostService,
+};

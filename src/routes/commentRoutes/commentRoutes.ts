@@ -52,7 +52,7 @@ commentRouter.post(
         req.body,
       );
 
-      const createdReply = commentServices.replyCommentService(
+      const createdReply = await commentServices.replyCommentService(
         validatedParams.postId,
         validatedParams.parentId!,
         validatedData,
@@ -69,5 +69,22 @@ commentRouter.post(
     }
   },
 );
+
+commentRouter.get("/post/:postId", async (req, res, next) => {
+  try {
+    const validatedParams: CommentParams = CommentParamsData.parse(req.params);
+
+    const fetchedComments = await commentServices.getAllCommentsForPostService(
+      validatedParams.postId,
+    );
+    res.status(200).json({
+      status: "SUCCESS",
+      message: "Successfully fetched all comments for post",
+      fetchedComments,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default commentRouter;
