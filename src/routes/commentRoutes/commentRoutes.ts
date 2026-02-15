@@ -165,10 +165,25 @@ commentRouter.put(
 );
 
 commentRouter.put(
-  "/post/:postId/:commentId/unlike",
+  "/post/:postId/:commentId/dislike",
   isAuthenticated,
   async (req, res, next) => {
     try {
+      const validatedParams: CommentParams = CommentParamsData.parse(
+        req.params,
+      );
+
+      const dislikedComment = await commentServices.dislikedCommentService(
+        validatedParams.postId,
+        validatedParams.commentId!,
+        Number(req.session.userId!),
+      );
+
+      res.status(201).json({
+        status: "SUCCESS",
+        message: "Successfully disliked comment",
+        dislikedComment,
+      });
     } catch (err) {
       next(err);
     }
