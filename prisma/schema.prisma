@@ -52,7 +52,7 @@ model Communities {
 model Messages {
   id             Int           @id @default(autoincrement())
   message        String
-  timestamp      DateTime
+  timestamp      DateTime      @default(now())
   senderId       Int
   conversationId Int
   conversation   Conversations @relation(fields: [conversationId], references: [id])
@@ -61,10 +61,20 @@ model Messages {
 
 model Conversations {
   id           Int        @id @default(autoincrement())
-  timestamp    DateTime
+  timestamp    DateTime   @default(now())
   messages     Messages[]
-  participants Users[]    
+  conversations ConversationParticipant[]    
 }
+
+model ConversationParticipant {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  userId         Int
+  conversation   Conversations @relation(fields: [conversationId], references: [id])
+  user           Users         @relation(fields: [userId], references: [id])
+  @@unique([conversationId, userId])
+}
+
 
 model Users {
   id                  Int                   @id @default(autoincrement())
@@ -79,7 +89,7 @@ model Users {
   followedCommunities FollowedCommunities[]
   messages            Messages[]
   posts               Posts[]
-  conversations       Conversations[]       
+  conversations       ConversationParticipant[]       
   postReaction        PostReaction[]
   favoritedPosts      FavoritedPosts[]
   commentLikes        CommentReaction[]
