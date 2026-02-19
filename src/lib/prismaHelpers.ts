@@ -2,6 +2,7 @@ import {
   ReactionType,
   type Communities,
   type Posts,
+  type Users,
 } from "../../generated/prisma/client";
 import type { PostsWithRelations } from "../services/postServices/typesPostServices";
 import { ConflictError, NotFoundError, UnauthorizedError } from "./appErrors";
@@ -144,4 +145,18 @@ export const isPostOwnerOrThrow = async (
       "You can't delete that if you are not the owner",
     );
   }
+};
+
+export const userExistsOrThrow = async (userId: number): Promise<Users> => {
+  const foundUser = await prisma.users.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!foundUser) {
+    throw new NotFoundError("That user was not found");
+  }
+
+  return foundUser;
 };

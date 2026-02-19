@@ -67,12 +67,11 @@ model Conversations {
 }
 
 model ConversationParticipant {
-  id             Int          @id @default(autoincrement())
   conversationId Int
   userId         Int
   conversation   Conversations @relation(fields: [conversationId], references: [id])
   user           Users         @relation(fields: [userId], references: [id])
-  @@unique([conversationId, userId])
+  @@id([conversationId, userId])
 }
 
 

@@ -11,6 +11,7 @@ import http from "http";
 import sessionMiddleware from "./middleware/sessionConfigMiddleware.js";
 import { NotFoundError, UnauthorizedError } from "./lib/appErrors.js";
 import prisma from "./lib/prisma.js";
+import conversationRouter from "./routes/conversationRoutes/conversationRoutes.js";
 
 dotenv.config();
 
@@ -144,6 +145,7 @@ app.use("/users", userRoutes);
 app.use("/communities", communityRouter);
 app.use("/posts", postRoutes);
 app.use("/comments", commentRouter);
+app.use("/conversations", conversationRouter);
 
 app.use(globalErrorHandler);
 
