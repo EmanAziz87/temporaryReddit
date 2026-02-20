@@ -1,6 +1,7 @@
 import {
   ReactionType,
   type Communities,
+  type Conversations,
   type Posts,
   type Users,
 } from "../../generated/prisma/client";
@@ -159,4 +160,20 @@ export const userExistsOrThrow = async (userId: number): Promise<Users> => {
   }
 
   return foundUser;
+};
+
+export const conversationExistsOrThrow = async (
+  conversationId: number,
+): Promise<Conversations> => {
+  const foundConversation = await prisma.conversations.findUnique({
+    where: {
+      id: conversationId,
+    },
+  });
+
+  if (!foundConversation) {
+    throw new NotFoundError("That conversation was not found");
+  }
+
+  return foundConversation;
 };
