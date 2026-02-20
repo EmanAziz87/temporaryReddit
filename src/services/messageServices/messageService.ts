@@ -1,3 +1,4 @@
+import type { Messages } from "../../../generated/prisma/client";
 import prisma from "../../lib/prisma";
 import {
   conversationExistsOrThrow,
@@ -8,7 +9,7 @@ const createMessageService = async (
   conversationId: number,
   userId: number,
   content: string,
-) => {
+): Promise<Messages> => {
   const foundConversation = await conversationExistsOrThrow(conversationId);
   await memberOfConversationOrThrow(foundConversation.id, userId);
 

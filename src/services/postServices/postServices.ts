@@ -117,7 +117,7 @@ const editPostService = async (
   newContent: string,
   communityId: number,
   postId: number,
-  userId: string,
+  userId: number,
 ): Promise<PostsWithRelations> => {
   const userIdNumber = Number(userId);
   const foundCommunity = await communityFoundOrThrow(communityId);

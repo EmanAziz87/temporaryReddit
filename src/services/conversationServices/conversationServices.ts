@@ -1,6 +1,11 @@
 import type { Conversations } from "../../../generated/prisma/client";
 import prisma from "../../lib/prisma";
-import { userExistsOrThrow } from "../../lib/prismaHelpers";
+import {
+  conversationExistsOrThrow,
+  memberOfConversationOrThrow,
+  userExistsOrThrow,
+} from "../../lib/prismaHelpers";
+import type { ConversationWithRelations } from "./typesConversationServices";
 
 const createConversationService = async (
   receiverId: number,
@@ -27,4 +32,31 @@ const createConversationService = async (
   });
 };
 
-export default { createConversationService };
+const getConversationHistoryService = async (
+  conversationId: number,
+  userId: number,
+): Promise<ConversationWithRelations> => {
+  const foundConversation = await conversationExistsOrThrow(conversationId);
+  await memberOfConversationOrThrow(foundConversation.id, userId);
+
+  return prisma.conversations.findUnique({
+    where: {
+      id: foundConversation.id,
+    },
+    include: {
+      messages: {
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              admin: true,
+            },
+          },
+        },
+      },
+    },
+  }) as Promise<ConversationWithRelations>;
+};
+
+export default { createConversationService, getConversationHistoryService };

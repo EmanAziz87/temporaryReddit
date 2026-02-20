@@ -35,4 +35,27 @@ conversationRouter.post(
   },
 );
 
+conversationRouter.get(
+  "/:conversationId",
+  isAuthenticated,
+  async (req, res, next) => {
+    try {
+      const validatedParams: ConversationGetParams =
+        ConversationGetParamsData.parse(req.params);
+      const fetchedConversationHistory =
+        await conversationServices.getConversationHistoryService(
+          validatedParams.conversationId,
+          req.session.userId,
+        );
+      res.status(200).json({
+        status: "SUCCESS",
+        message: "Successfully fetched all message history",
+        fetchedConversationHistory,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 export default conversationRouter;
